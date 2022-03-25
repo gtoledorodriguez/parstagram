@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">parstagram</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+
+    <string name="back4app_server_url">https://parseapi.back4app.com/</string>
+
+    <!-- Paste BOTH strings as required -->
+    <string name="back4app_app_id">TVFA6hX0YRytRIsP2ZN7gkvk967xL4wUsysXgDl8</string>
+    <string name="back4app_client_key">GjA88SQsTChgrkR7ldgRLNUzPTvcBGtFaILCmCrx</string>
+
+</resources>
