@@ -1,23 +1,24 @@
 package com.gladystoledo.parstagram
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Toast
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import com.parse.FindCallback
-import com.parse.ParseException
-import com.parse.ParseQuery
-import com.parse.ParseUser
+import com.parse.*
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+
 
 /**
  * Let user create a post by taking a photo with their camera
@@ -42,7 +43,15 @@ class MainActivity : AppCompatActivity() {
             //Get the description that hey have inputted
             val description = findViewById<EditText>(R.id.description).text.toString()
             val user = ParseUser.getCurrentUser()
-            submitPost(description, user)
+            if(photoFile != null){
+
+                submitPost(description, user, photoFile!!)
+
+            }else{
+                Log.e(TAG, "There is no picture")
+                Toast.makeText(this, "Take a Picture", Toast.LENGTH_SHORT).show()
+
+            }
         }
 
         findViewById<Button>(R.id.btnTakePicture).setOnClickListener {
@@ -50,27 +59,37 @@ class MainActivity : AppCompatActivity() {
             onLaunchCamera()
         }
 
-        queryPosts()
+        findViewById<Button>(R.id.logout_button).setOnClickListener{
+            logoutUser()
+        }
+
+        //queryPosts()
     }
 
     //Send Post Object to our Parse Server
-    fun submitPost(description: String, user: ParseUser) {
+    fun submitPost(description: String, user: ParseUser, file: File) {
+        val pb = findViewById<ProgressBar>(R.id.pbLoading)
+        pb.visibility = ProgressBar.VISIBLE
         //Create Post object
         val post = Post()
         post.setDescription(description)
         post.setUser(user)
+        post.setImage(ParseFile(file))
         post.saveInBackground { exception ->
             if(exception != null){
                 //Something went wrong
+                Toast.makeText(this, "Error while saving post", Toast.LENGTH_SHORT).show()
                 Log.e(TAG, "Error while saving Post")
                 exception.printStackTrace()
-                Toast.makeText(this, "Error while saving post", Toast.LENGTH_SHORT).show()
+
             }else{
                 Log.i(TAG, "Successfully saved post")
                 Toast.makeText(this, "Successfully saved post", Toast.LENGTH_SHORT).show()
                 findViewById<EditText>(R.id.description).text.clear()
-                findViewById<ImageView>(R.id.imageView).setImageDrawable(null)
+                findViewById<ImageView>(R.id.imageView).setImageBitmap(null)
+                photoFile = null
             }
+            pb.visibility = ProgressBar.INVISIBLE
         }
     }
 
@@ -80,10 +99,26 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == RESULT_OK) {
                 // by this point we have the camera photo on disk
                 val takenImage = BitmapFactory.decodeFile(photoFile!!.absolutePath)
+
+                val width = findViewById<ImageView>(R.id.imageView).width
                 // RESIZE BITMAP, see section below
+                val resizedBitmap = BitmapScaler.scaleToFitWidth(takenImage, width);
+
+                // Configure byte output stream
+                val bytes = ByteArrayOutputStream()
+                // Compress the image further
+                resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes)
+                // Create a new file for the resized bitmap (`getPhotoFileUri` defined above)
+                val resizedFile = getPhotoFileUri(photoFileName + "_resized")
+                resizedFile.createNewFile()
+                val fos = FileOutputStream(resizedFile)
+                // Write the bytes of the bitmap to file
+                fos.write(bytes.toByteArray())
+                fos.close()
+
                 // Load the taken image into a preview
                 val ivPreview: ImageView = findViewById(R.id.imageView)
-                ivPreview.setImageBitmap(takenImage)
+                ivPreview.setImageBitmap(resizedBitmap)
             } else { // Result was a failure
                 Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show()
             }
@@ -103,7 +138,6 @@ class MainActivity : AppCompatActivity() {
             val fileProvider: Uri =
                 FileProvider.getUriForFile(this, "com.codepath.fileprovider", photoFile!!)
             intent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider)
-
             // If you call startActivityForResult() using an intent that no app can handle, your app will crash.
             // So as long as the result is not null, it's safe to use the intent.
 
@@ -157,7 +191,35 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun logoutUser(){
+        ParseUser.logOut()
+        val currentUser = ParseUser.getCurrentUser() // this will now be null
+        Log.i(TAG, "Logout, Current User: " + currentUser)
+        goToLoginActivity()
+    }
+
+    private fun goToLoginActivity(){
+        val intent = Intent(this@MainActivity, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
     companion object{
         const val TAG = "MainActivity"
     }
+    object BitmapScaler {
+        // Scale and maintain aspect ratio given a desired width
+        // BitmapScaler.scaleToFitWidth(bitmap, 100)
+        fun scaleToFitWidth(b: Bitmap, width: Int): Bitmap {
+            val factor = width / b.width.toFloat()
+            return Bitmap.createScaledBitmap(b, width, (b.height * factor).toInt(), true)
+        }
+        // Scale and maintain aspect ratio given a desired height
+        // BitmapScaler.scaleToFitHeight(bitmap, 100)
+        fun scaleToFitHeight(b: Bitmap, height: Int): Bitmap {
+            val factor = height / b.height.toFloat()
+            return Bitmap.createScaledBitmap(b, (b.width * factor).toInt(), height, true)
+        } // ...
+    }
+
 }
