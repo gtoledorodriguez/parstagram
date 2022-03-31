@@ -13,6 +13,7 @@ import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.parse.*
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -57,6 +58,24 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnTakePicture).setOnClickListener {
             //Launch Camera to let user take picture
             onLaunchCamera()
+        }
+        findViewById<BottomNavigationView>(R.id.bottom_navigation).setOnItemSelectedListener {
+            item ->
+
+            when(item.itemId){
+                R.id.action_home ->{
+                    //TODO Navigate to home screen
+                    Toast.makeText(this,"Home",Toast.LENGTH_SHORT).show()
+                }
+                R.id.action_compose->{
+                    //TODO Navigate to compose screen
+                    Toast.makeText(this,"Compose",Toast.LENGTH_SHORT).show()}
+                R.id.action_profile->{
+                    //TODO Navigate to profile screen
+                    Toast.makeText(this,"Profile",Toast.LENGTH_SHORT).show()}
+            }
+            //return true to say that we've handled this user interaction on the itmem
+            true
         }
 
         findViewById<Button>(R.id.logout_button).setOnClickListener{
