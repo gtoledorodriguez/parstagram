@@ -35,7 +35,6 @@ class ComposeFragment : Fragment() {
     lateinit var ivPreview: ImageView
     lateinit var pb: ProgressBar
     lateinit var etDescription: EditText
-    lateinit var ivImageView: ImageView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,7 +51,7 @@ class ComposeFragment : Fragment() {
         ivPreview = view.findViewById(R.id.imageView)
 
         view.findViewById<Button>(R.id.logout_button).setOnClickListener{
-            //logoutUser()
+            logoutUser()
         }
 
         view.findViewById<Button>(R.id.btnSubmit).setOnClickListener{
@@ -63,7 +62,7 @@ class ComposeFragment : Fragment() {
             if(photoFile != null){
                 pb = view.findViewById<ProgressBar>(R.id.pbLoading)
                 etDescription = view.findViewById<EditText>(R.id.description)
-                ivImageView = view.findViewById<ImageView>(R.id.imageView)
+                ivPreview = view.findViewById<ImageView>(R.id.imageView)
 
                 submitPost(description, user, photoFile!!)
 
@@ -99,7 +98,7 @@ class ComposeFragment : Fragment() {
                 Log.i(MainActivity.TAG, "Successfully saved post")
                 Toast.makeText(requireContext(), "Successfully saved post", Toast.LENGTH_SHORT).show()
                 etDescription.text.clear()
-                ivImageView.setImageBitmap(null)
+                ivPreview.setImageBitmap(null)
                 photoFile = null
             }
             pb.visibility = ProgressBar.INVISIBLE
@@ -155,7 +154,7 @@ class ComposeFragment : Fragment() {
                 // by this point we have the camera photo on disk
                 val takenImage = BitmapFactory.decodeFile(photoFile!!.absolutePath)
 
-                val width = ivImageView.width
+                val width = ivPreview.width
                 // RESIZE BITMAP, see section below
                 val resizedBitmap = MainActivity.BitmapScaler.scaleToFitWidth(takenImage, width);
 
@@ -180,17 +179,17 @@ class ComposeFragment : Fragment() {
         }
     }
 
-//    private fun logoutUser(){
-//        ParseUser.logOut()
-//        val currentUser = ParseUser.getCurrentUser() // this will now be null
-//        Log.i(MainActivity.TAG, "Logout, Current User: " + currentUser)
-//        goToLoginActivity()
-//    }
+    private fun logoutUser(){
+        ParseUser.logOut()
+        val currentUser = ParseUser.getCurrentUser() // this will now be null
+        Log.i(MainActivity.TAG, "Logout, Current User: " + currentUser)
+        goToLoginActivity()
+    }
 
-//    private fun goToLoginActivity(){
-//        val intent = Intent(requireContext(), LoginActivity::class.java)
-//        startActivity(intent)
-//        finish()
-//    }
+    private fun goToLoginActivity(){
+        val intent = Intent(requireContext(), LoginActivity::class.java)
+        startActivity(intent)
+        activity?.finish()
+    }
 
 }

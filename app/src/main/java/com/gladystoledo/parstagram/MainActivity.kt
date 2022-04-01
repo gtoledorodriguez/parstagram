@@ -16,6 +16,8 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.gladystoledo.parstagram.fragments.ComposeFragment
+import com.gladystoledo.parstagram.fragments.FeedFragment
+import com.gladystoledo.parstagram.fragments.ProfileFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.parse.*
 import java.io.ByteArrayOutputStream
@@ -40,22 +42,20 @@ class MainActivity : AppCompatActivity() {
 //        val fragment2: Fragment = SecondFragment()
 //        val fragment3: Fragment = ThirdFragment()
 
-
-        findViewById<BottomNavigationView>(R.id.bottom_navigation).setOnItemSelectedListener {
+        var bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView.setOnItemSelectedListener {
             item ->
             var fragmentToShow: Fragment? = null
 
             when(item.itemId){
                 R.id.action_home ->{
-                    //TODO Navigate to home screen
-                    Toast.makeText(this,"Home",Toast.LENGTH_SHORT).show()
+                    fragmentToShow = FeedFragment()
                 }
                 R.id.action_compose->{
                     fragmentToShow = ComposeFragment()
                 }
                 R.id.action_profile->{
-                    //TODO Navigate to profile screen
-                    Toast.makeText(this,"Profile",Toast.LENGTH_SHORT).show()
+                    fragmentToShow = ProfileFragment()
                 }
             }
             if(fragmentToShow != null) {
@@ -66,32 +66,13 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        // Set default selection
+        bottomNavigationView.selectedItemId = R.id.action_home
+
         //queryPosts()
     }
 
-    //Query for all posts in our server
-    fun queryPosts() {
-        // Specify which class to query
-        val query: ParseQuery<Post> = ParseQuery.getQuery(Post::class.java)
 
-        query.include(Post.KEY_USER)
-        query.findInBackground(object: FindCallback<Post>{
-            //Find all Post Objects
-            override fun done(posts: MutableList<Post>?, e: ParseException?) {
-                if (e != null){
-                    //Something has gone wrong
-                    Log.e(TAG, "Error fetching posts")
-                }else{
-                    if (posts != null){
-                        for (post in posts){
-                            Log.i(TAG, "Post: " + post.getDescription() + ", username: "
-                            + post.getUser()?.username)
-                        }
-                    }
-                }
-            }
-        })
-    }
 
 
 
